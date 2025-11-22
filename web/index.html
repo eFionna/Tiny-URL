@@ -1,19 +1,236 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mini URL UwU ✨💖</title>
+<style>
+  body {
+    background: linear-gradient(135deg, #ffe6f0, #fff0f5);
+    font-family: 'Comic Sans MS', 'Comic Neue', cursive;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    color: #d147a3;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .floating {
+    position: absolute;
+    font-size: 1.5rem;
+    pointer-events: none;
+    animation: float 8s linear infinite, shimmer 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes float {
+    0% { transform: translateY(100vh) translateX(0) rotate(0deg); opacity: 0; }
+    10% { opacity: 1; }
+    100% { transform: translateY(-10vh) translateX(50px) rotate(360deg); opacity: 0; }
+  }
+
+  @keyframes shimmer {
+    0% { opacity: 0.7; }
+    50% { opacity: 1; }
+    100% { opacity: 0.7; }
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #ffd6eb;
+    padding: 2rem;
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(209, 71, 163, 0.3);
+    gap: 1rem;
+    transition: transform 0.2s;
+    z-index: 1;
+  }
+
+  form:hover {
+    transform: scale(1.02);
+  }
+
+  input[type="text"] {
+    padding: 0.8rem 1rem;
+    border-radius: 15px;
+    border: 2px solid #ffb3d9;
+    outline: none;
+    width: 250px;
+    font-size: 1rem;
+    text-align: center;
+    background: #fff0f5;
+  }
+
+  input[type="text"]::placeholder {
+    color: #ff80c2;
+    font-style: italic;
+  }
+
+  button {
+    background: linear-gradient(45deg, #ff99cc, #ff66b2);
+    border: none;
+    border-radius: 15px;
+    padding: 0.8rem 2rem;
+    color: white;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.3s;
+    box-shadow: 0 4px 10px rgba(255, 102, 178, 0.4);
+    animation: shimmer 2s infinite;
+  }
+
+  button:hover {
+    background: linear-gradient(45deg, #ff66b2, #ff3399);
+    transform: scale(1.1) rotate(-2deg);
+  }
+
+  @keyframes pop {
+    0% { transform: translate(0,0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--x), var(--y)) scale(1.5) rotate(360deg); opacity: 0; }
+  }
+
+  h3 {
+    margin-top: 1rem;
+    background: #ffe0f7;
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(209, 71, 163, 0.2);
+    z-index: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  h3 a {
+    color: #d147a3;
+    text-decoration: none;
+    font-weight: bold;
+  }
+
+  h3 a:hover {
+    text-decoration: underline;
+  }
+
+  .error {
+    color: #ff3366;
+    font-weight: bold;
+    background: #ffd6e0;
+  }
+
+  .pop-heart {
+    position: absolute;
+    font-size: 1.5rem;
+    animation: pop 1s ease-out forwards;
+    pointer-events: none;
+  }
+
+  .copy-btn {
+    background: #ffb3d9;
+    border: none;
+    border-radius: 10px;
+    padding: 0.2rem 0.6rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    color: white;
+    transition: background 0.3s, transform 0.2s;
+    position: relative;
+    overflow: visible;
+  }
+
+  .copy-btn:hover {
+    background: #ff80c2;
+    transform: scale(1.1);
+  }
+
+  .sparkle {
+    position: absolute;
+    font-size: 0.8rem;
+    animation: sparkle 0.6s ease-out forwards;
+    pointer-events: none;
+  }
+
+  @keyframes sparkle {
+    0% { transform: translate(0,0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--sx), var(--sy)) scale(1.5) rotate(180deg); opacity: 0; }
+  }
+</style>
+</head>
 <body>
 
-<form method="POST">
+<div class="floating" style="left:10%; animation-duration:6s;">💖</div>
+<div class="floating" style="left:30%; animation-duration:8s;">💗</div>
+<div class="floating" style="left:50%; animation-duration:10s;">✨</div>
+<div class="floating" style="left:70%; animation-duration:7s;">💞</div>
+<div class="floating" style="left:90%; animation-duration:9s;">💖</div>
+
+<form method="POST" id="miniForm">
   <input type="text" name="url" placeholder="Enter URL..." />
-  <button type="submit">Make Mini</button>
+  <button type="submit">Make Mini~! uwu 💕</button>
 </form>
 
 {{if .ShortURL}}
-  <h3>Your Mini URL: <a href="{{.ShortURL}}">{{.ShortURL}}</a></h3>
+  <h3 id="miniOutput">
+    Your Mini URL: <a href="{{.ShortURL}}" id="miniLink">{{.ShortURL}}</a>
+    <button class="copy-btn" id="copyBtn">Copy 💖</button>
+  </h3>
 {{end}}
 
 {{if .Error}}
-  <h3 style="color:red">{{.Error}}</h3>
+  <h3 class="error">{{.Error}}</h3>
 {{end}}
+
+<script>
+  const form = document.getElementById('miniForm');
+
+  form.addEventListener('submit', (e) => {
+    for(let i=0; i<10; i++){
+      const heart = document.createElement('div');
+      heart.className = 'pop-heart';
+      heart.textContent = ['💖','💗','💕','💞','✨'][Math.floor(Math.random()*5)];
+      const x = (Math.random()*200 - 100) + 'px';
+      const y = (Math.random()*-200 - 100) + 'px';
+      heart.style.setProperty('--x', x);
+      heart.style.setProperty('--y', y);
+      const rect = form.getBoundingClientRect();
+      heart.style.left = rect.left + rect.width/2 + 'px';
+      heart.style.top = rect.top + 'px';
+      document.body.appendChild(heart);
+      setTimeout(() => heart.remove(), 1000);
+    }
+  });
+
+  const copyBtn = document.getElementById('copyBtn');
+  if(copyBtn){
+    copyBtn.addEventListener('click', () => {
+      const miniLink = document.getElementById('miniLink');
+      navigator.clipboard.writeText(miniLink.href).then(() => {
+        copyBtn.textContent = 'Copied! 💕';
+
+        for(let i=0; i<5; i++){
+          const sparkle = document.createElement('div');
+          sparkle.className = 'sparkle';
+          sparkle.textContent = ['✨','💖','💗','💞','💕'][Math.floor(Math.random()*5)];
+          const sx = (Math.random()*60 - 30) + 'px';
+          const sy = (Math.random()*-60 - 20) + 'px';
+          sparkle.style.setProperty('--sx', sx);
+          sparkle.style.setProperty('--sy', sy);
+          const rect = copyBtn.getBoundingClientRect();
+          sparkle.style.left = rect.left + rect.width/2 + 'px';
+          sparkle.style.top = rect.top + rect.height/2 + 'px';
+          document.body.appendChild(sparkle);
+          setTimeout(() => sparkle.remove(), 600);
+        }
+
+        setTimeout(() => copyBtn.textContent = 'Copy 💖', 1500);
+      });
+    });
+  }
+</script>
 
 </body>
 </html>

@@ -1,0 +1,39 @@
+# Go build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Dependency directories
+vendor/
+node_modules/
+
+# Git and version control
+.git
+.gitignore
+
+# Env files / secrets
+.env
+.env.local
+.env.*.local
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+*.bak
+
+# IDE / Editor configs
+.vscode/
+.idea/
+*.iml
+
+# MacOS / Linux / Windows system files
+.DS_Store
+Thumbs.db
+
+# Dockerfile build artifacts
+docker-compose.override.yml
