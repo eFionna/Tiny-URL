@@ -18,6 +18,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Lowercase repo owner
+        id: lowered
+        run: echo "OWNER=$(echo '${GITHUB_REPOSITORY_OWNER}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
@@ -29,7 +33,7 @@ jobs:
 
       - name: Run tests
         run: go test ./... -cover
-        
+
       - name: Build Linux binary
         run: GOOS=linux GOARCH=amd64 go build -o tiny-url-linux ./cmd/tinyurl
 
@@ -52,19 +56,19 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.repository_owner | toLower }}
+          username: ${{ steps.lowered.outputs.OWNER }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build Docker image
         run: |
-          docker build -t ghcr.io/${{ github.repository_owner | toLower }}/tiny-url:latest \
-                       -t ghcr.io/${{ github.repository_owner | toLower }}/tiny-url:${{ steps.version.outputs.VERSION }} .
+          docker build -t ghcr.io/${{ steps.lowered.outputs.OWNER }}/tiny-url:latest \
+                       -t ghcr.io/${{ steps.lowered.outputs.OWNER }}/tiny-url:${{ steps.version.outputs.VERSION }} .
 
       - name: Push Docker image
         run: |
-          docker push ghcr.io/${{ github.repository_owner | toLower }}/tiny-url:latest
-          docker push ghcr.io/${{ github.repository_owner | toLower }}/tiny-url:${{ steps.version.outputs.VERSION }}
-
+          docker push ghcr.io/${{ steps.lowered.outputs.OWNER }}/tiny-url:latest
+          docker push ghcr.io/${{ steps.lowered.outputs.OWNER }}/tiny-url:${{ steps.version.outputs.VERSION }}
+          
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
@@ -72,11 +76,8 @@ jobs:
           name: Release ${{ steps.version.outputs.VERSION }}
           body: |
             ## Docker Images
-            **Latest:** ghcr.io/${{ github.repository_owner | toLower }}/tiny-url:latest  
-            **Versioned:** ghcr.io/${{ github.repository_owner | toLower }}/tiny-url:${{ steps.version.outputs.VERSION }}
-
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            **Latest:** ghcr.io/${{ steps.lowered.outputs.OWNER }}/tiny-url:latest  
+            **Versioned:** ghcr.io/${{ steps.lowered.outputs.OWNER }}/tiny-url:${{ steps.version.outputs.VERSION }}
 
       - name: Upload release assets
         uses: softprops/action-gh-release@v1
