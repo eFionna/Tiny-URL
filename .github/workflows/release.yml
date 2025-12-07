@@ -33,7 +33,7 @@ jobs:
 
       - name: Run tests
         run: go test ./... -cover
-
+        
       - name: Build Linux binary
         run: GOOS=linux GOARCH=amd64 go build -o tiny-url-linux ./cmd/tinyurl
 
@@ -61,14 +61,15 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t ghcr.io/${{ steps.lowered.outputs.OWNER }}/tiny-url:latest \
-                       -t ghcr.io/${{ steps.lowered.outputs.OWNER }}/tiny-url:${{ steps.version.outputs.VERSION }} .
+          docker build \
+            -t ghcr.io/${{ steps.lowered.outputs.OWNER }}/tiny-url:latest \
+            -t ghcr.io/${{ steps.lowered.outputs.OWNER }}/tiny-url:${{ steps.version.outputs.VERSION }} .
 
       - name: Push Docker image
         run: |
           docker push ghcr.io/${{ steps.lowered.outputs.OWNER }}/tiny-url:latest
           docker push ghcr.io/${{ steps.lowered.outputs.OWNER }}/tiny-url:${{ steps.version.outputs.VERSION }}
-          
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
