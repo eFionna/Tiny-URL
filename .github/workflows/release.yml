@@ -21,6 +21,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Lowercase repo owner + repo
+        id: lowered
+        run: |
+          echo "owner=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+          echo "repo=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
@@ -36,9 +42,16 @@ jobs:
       - name: Generate changelog
         id: changelog
         run: |
-          echo "CHANGELOG<<EOF" >> $GITHUB_ENV
-          git log --pretty=format:"- %s" $(git describe --tags --abbrev=0)...HEAD >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+            echo "Initial release." >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+          else
+            echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+            git log --pretty=format:"- %s" $LAST_TAG...HEAD >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+          fi
 
       - name: Build Linux binary
         run: GOOS=linux GOARCH=amd64 go build -o tiny-url-linux ./cmd/tinyurl
@@ -65,7 +78,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
+          username: ${{ steps.lowered.outputs.owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cache Docker layers
@@ -82,8 +95,8 @@ jobs:
         run: |
           docker buildx build \
             --platform linux/amd64,linux/arm64 \
-            --tag ghcr.io/${{ github.repository_owner }}/tiny-url:latest \
-            --tag ghcr.io/${{ github.repository_owner }}/tiny-url:${{ steps.version.outputs.VERSION }} \
+            --tag ghcr.io/${{ steps.lowered.outputs.owner }}/tiny-url:latest \
+            --tag ghcr.io/${{ steps.lowered.outputs.owner }}/tiny-url:${{ steps.version.outputs.VERSION }} \
             --cache-from=type=local,src=/tmp/.buildx-cache \
             --cache-to=type=local,dest=/tmp/.buildx-cache-new,mode=max \
             --push .
@@ -96,7 +109,7 @@ jobs:
       - name: Generate SBOM
         uses: anchore/sbom-action@v0
         with:
-          image: ghcr.io/${{ github.repository_owner }}/tiny-url:${{ steps.version.outputs.VERSION }}
+          image: ghcr.io/${{ steps.lowered.outputs.owner }}/tiny-url:${{ steps.version.outputs.VERSION }}
           format: cyclonedx-json
           output-file: sbom.json
 
@@ -106,8 +119,8 @@ jobs:
       - name: Cosign Sign Image
         run: |
           cosign sign \
-            ghcr.io/${{ github.repository_owner }}/tiny-url:${{ steps.version.outputs.VERSION }} \
-            ghcr.io/${{ github.repository_owner }}/tiny-url:latest \
+            ghcr.io/${{ steps.lowered.outputs.owner }}/tiny-url:${{ steps.version.outputs.VERSION }} \
+            ghcr.io/${{ steps.lowered.outputs.owner }}/tiny-url:latest \
             --yes
 
       - name: Create GitHub Release
@@ -121,23 +134,21 @@ jobs:
 
             ## Docker Images (Multi-Arch)
             **Latest**  
-            ghcr.io/${{ github.repository_owner }}/tiny-url:latest  
+            ghcr.io/${{ steps.lowered.outputs.owner }}/tiny-url:latest  
 
             **Versioned**  
-            ghcr.io/${{ github.repository_owner }}/tiny-url:${{ steps.version.outputs.VERSION }}
+            ghcr.io/${{ steps.lowered.outputs.owner }}/tiny-url:${{ steps.version.outputs.VERSION }}
 
-            *Supports: linux/amd64, linux/arm64 (Raspberry Pi)*
+            Supports **linux/amd64** and **linux/arm64** (Raspberry Pi 4/5)
 
             ---
-
-            ## Signed Artifacts
-            Images are signed with **Cosign keyless signing** (OIDC).
-
+            ## Signed Artifacts (Cosign)
             Verify with:
             ```
-            cosign verify ghcr.io/${{ github.repository_owner }}/tiny-url:${{ steps.version.outputs.VERSION }}
+            cosign verify ghcr.io/${{ steps.lowered.outputs.owner }}/tiny-url:${{ steps.version.outputs.VERSION }}
             ```
 
+            ---
             ## Changelog
             ${{ env.CHANGELOG }}
 
