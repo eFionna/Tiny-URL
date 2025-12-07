@@ -2,19 +2,23 @@ package app
 
 import (
 	"context"
+	"html/template"
 	"time"
 
 	"github.com/eFionna/Tiny-URL/internal/config"
 	"github.com/redis/go-redis/v9"
 )
 
+//var tmpl = template.Must(template.ParseFiles("web/index.html"))
+
 type App struct {
 	RDB    *redis.Client
 	Config *config.Config
 	Ctx    context.Context
+	Tmpl   *template.Template
 }
 
-func NewApp(cfg *config.Config) (*App, error) {
+func NewApp(cfg *config.Config, tmpl *template.Template) (*App, error) {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:            cfg.RedisAddr,
 		Password:        cfg.RedisPassword,
@@ -33,5 +37,6 @@ func NewApp(cfg *config.Config) (*App, error) {
 		RDB:    rdb,
 		Config: cfg,
 		Ctx:    ctx,
+		Tmpl:   tmpl,
 	}, nil
 }

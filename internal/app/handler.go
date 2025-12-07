@@ -1,7 +1,6 @@
 package app
 
 import (
-	"html/template"
 	"log"
 	"net/http"
 	"strings"
@@ -13,8 +12,6 @@ type PageData struct {
 	ShortURL string
 	Error    string
 }
-
-var tmpl = template.Must(template.ParseFiles("web/index.html"))
 
 func (a *App) HandleIndex(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
@@ -38,7 +35,7 @@ func (a *App) HandleIndex(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if err := tmpl.Execute(w, data); err != nil {
+	if err := a.Tmpl.Execute(w, data); err != nil {
 		log.Println("Template rendering error:", err)
 		http.Error(w, "Template rendering error", http.StatusInternalServerError)
 	}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"html/template"
 	"log"
 	"net/http"
 	"time"
@@ -11,8 +12,8 @@ import (
 
 func main() {
 	cfg := config.Load()
-
-	appInstance, err := app.NewApp(cfg)
+	tmpl := template.Must(template.ParseFiles("web/index.html"))
+	appInstance, err := app.NewApp(cfg, tmpl)
 	if err != nil {
 		log.Fatalf("Failed to initialize app: %v", err)
 	}
